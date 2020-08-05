@@ -20,4 +20,9 @@
    
       pip install MechanicalSoup 
       
-      pip install bs4
+      pip install bs4  
+      
+## Instruction
+1. put csv file which contain DC items' url in the same folder as DC item scrapper. 
+2. run 'Related File Scraper v1.0.0.py'  
+3. follow instructions on display  
