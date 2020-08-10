@@ -1,15 +1,23 @@
+def findFileName(soup):
+    fileName = ""
+    value = ""
+    result = soup.find('title')
+    value += result.string.split("|", 3)[1]
+    fileName = value[1:]
+    return fileName
+
 def findFileID(soup):
+    result = soup.find('input', attrs={'name': "parent_id"})
+    fileID = result["value"]
+
+    return fileID
+
+def findWorkID(soup):
     value = ""
     workID = ""
     result = soup.find('title')
     value += result.string.split("|", 3)[2]
-    workID = value[4:len(value) - 1]
-
-    return workID
-
-def findWorkID(soup):
-    result = soup.find('input', attrs={'name': "parent_id"})
-    workID = result["value"]
+    workID = value[5:len(value) - 1]
 
     return workID
 

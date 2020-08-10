@@ -2,7 +2,7 @@
 # @return   fileHeader
 #           The list contain all category name
 def getHeader():
-    fileHeader = ["Work ID", "File ID", "Depositor", "Date Uploaded", "Date Modified", "Fixity Check",
+    fileHeader = ["Work ID", "File ID", "File Name", "Depositor", "Date Uploaded", "Date Modified", "Fixity Check",
                     "Characterization"]
 
     return fileHeader

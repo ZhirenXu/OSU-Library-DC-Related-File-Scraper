@@ -35,30 +35,36 @@ def runProcessParallelLogin(session, urlList, outputFile):
         future_to_url = {executor.submit(loadUrlSession, session, url): url for url in urlList}
         for future in concurrent.futures.as_completed(future_to_url):
             print("Processing ",i, " / ", numOfUrl, "records.")
-            # original url link
-            url = future_to_url[future]
-            # opened url
-            html = future.result()
-            # load target digital collection in html parser
-            soup = BeautifulSoup(html.text, 'html.parser')
-            # find attributes value
-            listOfFile = findFilePage(soup)
-            getValue(categoryValue, session, listOfFile)
-            generateOutput(categoryValue, outputFile)
-            print("Write into CSV successful.")
-            categoryValue = []
-            nextPageSoup = findNextPage(soup, session)
-            while nextPageSoup != None:
-                listOfFile = findFilePage(nextPageSoup)
-                if listOfFile != None:
-                    getValue(categoryValue, listOfFile)
-                    generateOutput(categoryValue, outputFile)
-                    print("Write into CSV successful.")
-                else:
-                    print("No related file under this url.")
-                listOfFile = []
+            try:
+                # original url link
+                url = future_to_url[future]
+                # opened url
+                html = future.result()
+                # load target digital collection in html parser
+                soup = BeautifulSoup(html.text, 'html.parser')
+                # find attributes value
+                listOfFile = findFilePage(soup)
+                getValue(categoryValue, session, listOfFile)
+                generateOutput(categoryValue, outputFile)
+                print("Write into CSV successful.")
                 categoryValue = []
                 nextPageSoup = findNextPage(soup, session)
+                while nextPageSoup != None:
+                    listOfFile = findFilePage(nextPageSoup)
+                    if listOfFile != None:
+                        getValue(categoryValue, listOfFile)
+                        generateOutput(categoryValue, outputFile)
+                        print("Write into CSV successful.")
+                    else:
+                        print("No related file under this url.")
+                    listOfFile = []
+                    categoryValue = []
+                    nextPageSoup = findNextPage(soup, session)
+            except:
+                print("Some error happened. Please run it again in case of unstable network.")
+                print("If this kind of error keep happening, save the error message and send to author.")
+                print("Press enter to exit. ", end = '')
+                input()
             listOfFile = []
             categoryValue = []
             print("All pages processed. No more next page.")
@@ -85,6 +91,7 @@ def getValue(resultList, session, fileUrlList):
             soup = BeautifulSoup(html.text, 'html.parser')
             fileResult.append(Find.findFileID(soup))
             fileResult.append(Find.findWorkID(soup))
+            fileResult.append(Find.findFileName(soup))
             fileResult.append(Find.findDepositor(soup))
             fileResult.append(Find.findDateUploaded(soup))
             fileResult.append(Find.findDateModified(soup))
