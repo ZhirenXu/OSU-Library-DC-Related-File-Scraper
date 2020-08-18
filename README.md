@@ -26,3 +26,8 @@
 1. put csv file which contain DC items' url in the same folder as DC item scrapper. 
 2. run 'Related File Scraper v1.0.0.py'  
 3. follow instructions on display  
+
+## Change:
+Fix the bug on files contain more than 10related files
+Adjust try-except block so the error message are more meaningful
+Add html 404 detection and keep the program running
