@@ -5,7 +5,7 @@ from Code import Find
 import requests
 from Code import SimpleCSV
 from requests import Session
-
+import sys
 def loadUrl(url):
     html = urllib.request.urlopen(url)
     return html
@@ -35,11 +35,16 @@ def runProcessParallelLogin(session, urlList, outputFile):
         future_to_url = {executor.submit(loadUrlSession, session, url): url for url in urlList}
         for future in concurrent.futures.as_completed(future_to_url):
             print("Processing ",i, " / ", numOfUrl, "records.")
+            # original url link
+            url = future_to_url[future]
+            # opened url
             try:
-                # original url link
-                url = future_to_url[future]
-                # opened url
                 html = future.result()
+            except:
+                print("No response from this url!")
+                print("url: ", url)
+                break
+            if (html.status_code != 404):
                 # load target digital collection in html parser
                 soup = BeautifulSoup(html.text, 'html.parser')
                 # find attributes value
@@ -48,23 +53,30 @@ def runProcessParallelLogin(session, urlList, outputFile):
                 generateOutput(categoryValue, outputFile)
                 print("Write into CSV successful.")
                 categoryValue = []
-                nextPageSoup = findNextPage(soup, session)
-                while nextPageSoup != None:
-                    listOfFile = findFilePage(nextPageSoup)
-                    if listOfFile != None:
-                        getValue(categoryValue, listOfFile)
-                        generateOutput(categoryValue, outputFile)
-                        print("Write into CSV successful.")
-                    else:
-                        print("No related file under this url.")
-                    listOfFile = []
-                    categoryValue = []
+                try:
                     nextPageSoup = findNextPage(soup, session)
-            except:
-                print("Some error happened. Please run it again in case of unstable network.")
-                print("If this kind of error keep happening, save the error message and send to author.")
-                print("Press enter to exit. ", end = '')
-                input()
+                    while nextPageSoup != None:
+                        listOfFile = findFilePage(nextPageSoup)
+                        if listOfFile != None:
+                            getValue(categoryValue, session, listOfFile)
+                            generateOutput(categoryValue, outputFile)
+                            print("Write into CSV successful.")
+                        else:
+                            print("No related file under this url.")
+                        listOfFile = []
+                        categoryValue = []
+                        nextPageSoup = findNextPage(nextPageSoup, session)
+                except:
+                    print("\nError happened when finding next page.")
+                    print("If this kind of error keep happening, save the error message and send to author.")
+                    print("Press enter to exit. ", end = '')
+                    input()
+                    sys.exit()
+            else:
+                print("\nCan't open url: 404 page not found. null will be used as filled value")
+                print("url: ", url, "\n")
+                getNullValue(categoryValue)
+                generateOutput(categoryValue, outputFile)
             listOfFile = []
             categoryValue = []
             print("All pages processed. No more next page.")
@@ -99,7 +111,19 @@ def getValue(resultList, session, fileUrlList):
             fileResult.append(Find.findCharacterization(soup))
             resultList.append(fileResult)
             fileResult = []
-    
+            
+def getNullValue(resultList):
+    fileResult = []
+    fileResult.append("null")
+    fileResult.append("null")
+    fileResult.append("null")
+    fileResult.append("null")
+    fileResult.append("null")
+    fileResult.append("null")
+    fileResult.append("null")
+    fileResult.append("null")
+    resultList.append(fileResult)
+
 ## add master file name into list and write data into csv file
 # @param    rows
 #           Expected data by row
@@ -146,11 +170,10 @@ def findFilePage(source):
 def findNextPage(source, session):
     nextPage = ""
     urlPrefix = "https://library.osu.edu/"
-    result = source.find('a', attrs={'rel': 'next'})
-    #print(result)
-    if (result != None):
-        nextPage = urlPrefix + result['href']
-        print("Next page of files is founded, processing...")
+    result = source.find_all('a', attrs={'rel': 'next'})
+    if (result != None and len(result) > 1):
+        nextPage = urlPrefix + result[0]['href']
+        print("Next page of files is found, processing...")
         html = loadUrlSession(session, nextPage)
         nextPageSoup = BeautifulSoup(html.text, 'html.parser')
         return nextPageSoup
