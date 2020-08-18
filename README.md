@@ -28,6 +28,6 @@
 3. follow instructions on display  
 
 ## Change:
-Fix the bug on files contain more than 10related files
-Adjust try-except block so the error message are more meaningful
-Add html 404 detection and keep the program running
+Fix the bug on files contain more than 10related files  
+Adjust try-except block so the error message are more meaningful  
+Add html 404 detection and keep the program running  
