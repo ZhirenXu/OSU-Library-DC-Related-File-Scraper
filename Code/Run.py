@@ -6,6 +6,7 @@ import requests
 from Code import SimpleCSV
 from requests import Session
 import sys
+
 def loadUrl(url):
     html = urllib.request.urlopen(url)
     return html
