@@ -1,3 +1,5 @@
 
 burroughs.csv
 test.csv
+*.pyc
+*.csv
