@@ -7,9 +7,9 @@ from Code import SimpleCSV
 from requests import Session
 import sys
 
-def loadUrl(url):
-    html = urllib.request.urlopen(url)
-    return html
+#def loadUrl(url):
+#    html = urllib.request.urlopen(url)
+#    return html
 
 def loadUrlSession(session, url):
     html = session.get(url)
@@ -83,7 +83,7 @@ def runProcessParallelLogin(session, urlList, outputFile):
             print("All pages processed. No more next page.")
             print("Successfully web-scraped ", i, " / ", numOfUrl, "records.\n")
             i = i + 1
-
+        
 ## call functions to get value for each cell in header
 # @param    resultList
 #           a list to store results
