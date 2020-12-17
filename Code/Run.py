@@ -38,6 +38,7 @@ def runProcessParallelLogin(session, urlList, outputFile):
             print("Processing ",i, " / ", numOfUrl, "records.")
             # original url link
             url = future_to_url[future]
+            print("Current URL: ", url)
             # opened url
             try:
                 html = future.result()
@@ -50,7 +51,11 @@ def runProcessParallelLogin(session, urlList, outputFile):
                 soup = BeautifulSoup(html.text, 'html.parser')
                 # find attributes value
                 listOfFile = findFilePage(soup)
-                getValue(categoryValue, session, listOfFile)
+                if not (listOfFile == None):
+                    getValue(categoryValue, session, listOfFile)
+                else:
+                    print("This page doesn't have any related file")
+                    categoryValue.append([Find.findFileName(soup)])
                 generateOutput(categoryValue, outputFile)
                 print("Write into CSV successful.")
                 categoryValue = []
