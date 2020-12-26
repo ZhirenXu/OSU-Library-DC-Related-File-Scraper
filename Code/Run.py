@@ -7,10 +7,6 @@ from Code import SimpleCSV
 from requests import Session
 import sys
 
-#def loadUrl(url):
-#    html = urllib.request.urlopen(url)
-#    return html
-
 def loadUrlSession(session, url):
     html = session.get(url)
     return html
@@ -38,6 +34,7 @@ def runProcessParallelLogin(session, urlList, outputFile):
             print("Processing ",i, " / ", numOfUrl, "records.")
             # original url link
             url = future_to_url[future]
+            print("Current URL: ", url)
             # opened url
             try:
                 html = future.result()
@@ -50,7 +47,11 @@ def runProcessParallelLogin(session, urlList, outputFile):
                 soup = BeautifulSoup(html.text, 'html.parser')
                 # find attributes value
                 listOfFile = findFilePage(soup)
-                getValue(categoryValue, session, listOfFile)
+                if not (listOfFile == None):
+                    getValue(categoryValue, session, listOfFile)
+                else:
+                    print("This page doesn't have any related file")
+                    categoryValue.append([url])
                 generateOutput(categoryValue, outputFile)
                 print("Write into CSV successful.")
                 categoryValue = []
@@ -102,14 +103,38 @@ def getValue(resultList, session, fileUrlList):
             html = future.result()
             # load target digital collection in html parser
             soup = BeautifulSoup(html.text, 'html.parser')
-            fileResult.append(Find.findFileID(soup))
-            fileResult.append(Find.findWorkID(soup))
-            fileResult.append(Find.findFileName(soup))
-            fileResult.append(Find.findDepositor(soup))
-            fileResult.append(Find.findDateUploaded(soup))
-            fileResult.append(Find.findDateModified(soup))
-            fileResult.append(Find.findFixity(soup))
-            fileResult.append(Find.findCharacterization(soup))
+            try:
+                fileResult.append(Find.findFileID(url))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findWorkID(url))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findFileName(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findDepositor(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findDateUploaded(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findDateModified(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findFixity(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findCharacterization(soup))
+            except:
+                fileResult.append("null")
             resultList.append(fileResult)
             fileResult = []
             
