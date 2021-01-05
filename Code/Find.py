@@ -1,38 +1,55 @@
 def findFileName(soup):
     fileName = ""
     value = ""
-    
-    result = soup.find('h1', attrs={'class': "ensure-wrapped"})
-    fileName = result.text
-    if len(fileName) < 1:
-        fileName = "null"
-    else:
-        for char in fileName:
-            if not(char.isalpha()):
-                fileName = fileName[fileName.index(char)+1:]
-            else:
-                break
-        nextEmpty = fileName.index(" ")
-        fileName = fileName[:nextEmpty]
+
+    try:
+        result = soup.find('h1', attrs={'class': "ensure-wrapped"})
+        fileName = result.contents[0].string
+        if len(fileName) < 1:
+            fileName = "null"
+        else:
+            for char in fileName:
+                if not(char.isalpha()):
+                    fileName = fileName[fileName.index(char)+1:]
+                else:
+                    break
+    except:
+        print("Fail to find file name!")
         
     return fileName
 
 def findFileID(url):
-    fileIDPosition = url.index("parent") + 7
-    fileID = url[fileIDPosition : fileIDPosition + 9]
-    #result = soup.find('input', attrs={'name': "parent_id"})
-    #fileID = result["value"]
-
+    try:
+        fileIDPosition = url.index("parent") + 7
+        fileID = url[fileIDPosition : fileIDPosition + 9]
+    except:
+        try:
+            print("Primary fileID search return no result, try alternative way......")
+            result = soup.find('input', attrs={'name': "parent_id"})
+            fileID = result["value"]
+        except:
+            print("Alternative method fail, no file ID can be found.")
+            
     return fileID
 
 def findWorkID(url):
-    workIDPosition = url.index("file_sets") + 10
-    workID = url[workIDPosition : len(url)]
-    #value = ""
-    #workID = ""
-    #result = soup.find('title')
-    #value += result.string.split("|", 3)[2]
-    #workID = value[5:len(value) - 1]
+    try:
+        workIDPosition = url.index("file_sets") + 10
+        workID = url[workIDPosition : workIDPosition + 9]
+    except:
+        try:
+            print("Primary fileID search return no result, try alternative way......")
+            result = soup.find('a', attrs={'id': "file_download"})
+            workID = result["data-label"]
+        except:
+            try:      
+                value = ""
+                workID = ""
+                result = soup.find('title')
+                value += result.string.split("|", 3)[2]
+                workID = value[5:len(value) - 1]
+            except:
+                print("Alternative method fail, no work ID can be found.")
 
     return workID
 
