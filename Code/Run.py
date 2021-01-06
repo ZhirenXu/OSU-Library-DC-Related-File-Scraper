@@ -129,7 +129,7 @@ def getValue(resultList, session, fileUrlList):
             except:
                 fileResult.append("null")
             try:
-                fileResult.append(Find.findFileName(soup))
+                fileResult.append(Find.findFileName(soup, url))
             except:
                 fileResult.append("null")
             try:
