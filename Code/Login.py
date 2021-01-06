@@ -2,16 +2,17 @@ import requests
 import mechanicalsoup
 import sys
 import getpass
-
-# When login successful, the length of response text is 17228
-SuccessfulLogin = 17228
+import time
+# When login successful, this should include in the response
+SuccessfulLogin = "Signed in successfully"
 # when login is not vaild, the length of response text is 11864
 BadLogin = 11864
+crediential = {}
+url = "https://library.osu.edu/dc/users/sign_in"
 
 def login():
-    url = "https://library.osu.edu/dc/users/sign_in"
-    crediential = {}
     browser = ()
+    i = 0
     
     print("Login url: https://library.osu.edu/dc/users/sign_in")
     status = True
@@ -19,11 +20,13 @@ def login():
         browser = mechanicalsoup.StatefulBrowser()
         login_page = browser.open(url)
         login_form = browser.select_form('form[action="/dc/users/sign_in?locale=en"]')
-        crediential = getCreditential()
+        getCreditential()
+        t_start = time.process_time()
         browser["user[email]"] = crediential["Email"]
         browser["user[password]"] = crediential["Password"]
         response = browser.submit_selected()
-        if response.status_code == 200 and len(response.text) == SuccessfulLogin:
+        #print(response.text)
+        if (response.status_code == 200) and (SuccessfulLogin in response.text):
             print("\nLogin Success!\n")
         else:
             print("\nLogin Fail!\n")
@@ -33,12 +36,25 @@ def login():
                 sys.exit()
             elif userChoice == "Y" or userChoice == "y":
                 login()
+        t_end = time.process_time()
+        print("Process Time: ", t_end - t_start)
+        print("\n")
+    return browser
+
+def reAuth():
+    browser = mechanicalsoup.StatefulBrowser()
+    login_page = browser.open(url)
+    login_form = browser.select_form('form[action="/dc/users/sign_in?locale=en"]')
+    browser["user[email]"] = crediential["Email"]
+    browser["user[password]"] = crediential["Password"]
+    response = browser.submit_selected()
+    if (response.status_code == 200) and (SuccessfulLogin in response.text):
+        print("\nLogin Success!\n")
+        
     return browser
 
 ## ask user to type in login info
-def getCreditential():
-    credit = {}
-    
+def getCreditential():    
     print("Please enter your user name(email address): ", end = "")
     email = input()
     #error check
@@ -46,15 +62,13 @@ def getCreditential():
         print("Invaild email address. Please type again. Ctrl+C to quit.")
         print("user name(email address): ", end = "")
         email = input()
-    credit["Email"] = email
+    crediential["Email"] = email
     print("Please enter your password. For privacy the password is invisible")
     password = getpass.getpass()
     while len(password) == 0:
         print("Invaild password. Please type again. Ctrl+C to quit.")
         password = getpass.getpass()
-    credit["Password"] = password
-
-    return credit
+    crediential["Password"] = password
 
 def wantLogin():
     print("Do you need to login? Y/N: ", end = "")
@@ -62,3 +76,4 @@ def wantLogin():
     if choice == 'Y' or choice == 'y':
         return True
     return False
+

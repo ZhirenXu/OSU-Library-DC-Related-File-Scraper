@@ -4,11 +4,10 @@ from bs4 import BeautifulSoup
 from Code import Find
 import requests
 from Code import SimpleCSV
+from Code import Login
 from requests import Session
 import sys
-def loadUrl(url):
-    html = urllib.request.urlopen(url)
-    return html
+import gc
 
 def loadUrlSession(session, url):
     html = session.get(url)
@@ -21,36 +20,40 @@ def loadUrlSession(session, url):
 #           a list contain item url
 # @param    outputFile
 #           a CSV file for output
-def runProcessParallelLogin(session, urlList, outputFile):
+def runProcessParallelLogin(session, urlList, outFile):
     categoryValue = []
     listOfFile = []
     # iterator to show program progress
     i = 1
-    ## TODO: finish find file url/find next page url
+    
     numOfUrl = len(urlList)
     print("There are ", numOfUrl, " records in the input file.\n")
     print("Proceeding......\n")
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers = 5) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers = 3) as executor:
         future_to_url = {executor.submit(loadUrlSession, session, url): url for url in urlList}
         for future in concurrent.futures.as_completed(future_to_url):
             print("Processing ",i, " / ", numOfUrl, "records.")
             # original url link
             url = future_to_url[future]
+            print("Current URL: ", url)
             # opened url
             try:
                 html = future.result()
             except:
-                print("No response from this url!")
-                print("url: ", url)
+                httpNoResponse(url)
                 break
             if (html.status_code != 404):
                 # load target digital collection in html parser
                 soup = BeautifulSoup(html.text, 'html.parser')
                 # find attributes value
                 listOfFile = findFilePage(soup)
-                getValue(categoryValue, session, listOfFile)
-                generateOutput(categoryValue, outputFile)
+                if not (listOfFile == None):
+                    getValue(categoryValue, session, listOfFile)
+                else:
+                    print("This page doesn't have any related file")
+                    categoryValue.append([url])
+                generateOutput(categoryValue, outFile)
                 print("Write into CSV successful.")
                 categoryValue = []
                 try:
@@ -59,7 +62,7 @@ def runProcessParallelLogin(session, urlList, outputFile):
                         listOfFile = findFilePage(nextPageSoup)
                         if listOfFile != None:
                             getValue(categoryValue, session, listOfFile)
-                            generateOutput(categoryValue, outputFile)
+                            generateOutput(categoryValue, outFile)
                             print("Write into CSV successful.")
                         else:
                             print("No related file under this url.")
@@ -67,33 +70,49 @@ def runProcessParallelLogin(session, urlList, outputFile):
                         categoryValue = []
                         nextPageSoup = findNextPage(nextPageSoup, session)
                 except:
-                    print("\nError happened when finding next page.")
-                    print("If this kind of error keep happening, save the error message and send to author.")
-                    print("Press enter to exit. ", end = '')
-                    input()
-                    sys.exit()
+                    findNextPageErr()
             else:
                 print("\nCan't open url: 404 page not found. null will be used as filled value")
                 print("url: ", url, "\n")
                 getNullValue(categoryValue)
-                generateOutput(categoryValue, outputFile)
-            listOfFile = []
-            categoryValue = []
+                generateOutput(categoryValue, outFile)
             print("All pages processed. No more next page.")
             print("Successfully web-scraped ", i, " / ", numOfUrl, "records.\n")
+            urlList.remove(url)
+            listOfFile = []
+            categoryValue = []
             i = i + 1
+            
 
+def httpNoResponse(url):
+    print("No response from this url!")
+    print("url: ", url)
+
+def findNextPageErr():
+    print("\nError happened when finding next page.")
+    print("If this kind of error keep happening, save the error message and send to author.")
+    print("Press enter to exit. ", end = '')
+    input()
+    sys.exit()
+                    
 ## call functions to get value for each cell in header
 # @param    resultList
 #           a list to store results
 # @param    session
 #           login cookie to access private file record
 # @param    fileUrlList
-#           a list of url fot related files
+#           a list of url for related files
 # @update   resultList
 def getValue(resultList, session, fileUrlList):
     fileResult = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers = 5) as executor:
+    #intelligent multithreading :)
+    numOfFile = len(resultList)
+    if numOfFile > 9:
+        numOfFile = 9
+    if numOfFile < 1:
+        numOfFile = 1
+        
+    with concurrent.futures.ThreadPoolExecutor(max_workers = numOfFile) as executor:
         future_to_url = {executor.submit(loadUrlSession, session, url): url for url in fileUrlList}
         for future in concurrent.futures.as_completed(future_to_url):
             url = future_to_url[future]
@@ -101,16 +120,41 @@ def getValue(resultList, session, fileUrlList):
             html = future.result()
             # load target digital collection in html parser
             soup = BeautifulSoup(html.text, 'html.parser')
-            fileResult.append(Find.findFileID(soup))
-            fileResult.append(Find.findWorkID(soup))
-            fileResult.append(Find.findFileName(soup))
-            fileResult.append(Find.findDepositor(soup))
-            fileResult.append(Find.findDateUploaded(soup))
-            fileResult.append(Find.findDateModified(soup))
-            fileResult.append(Find.findFixity(soup))
-            fileResult.append(Find.findCharacterization(soup))
+            try:
+                fileResult.append(Find.findWorkID(url))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findFileID(url))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findFileName(soup, url))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findDepositor(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findDateUploaded(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findDateModified(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findFixity(soup))
+            except:
+                fileResult.append("null")
+            try:
+                fileResult.append(Find.findCharacterization(soup))
+            except:
+                fileResult.append("null")
             resultList.append(fileResult)
             fileResult = []
+            gc.collect()
             
 def getNullValue(resultList):
     fileResult = []
@@ -179,3 +223,31 @@ def findNextPage(source, session):
         return nextPageSoup
     else:
         return None
+
+## Split a biglist into several small group for better memory management
+# @param    urlList
+#           the list wait to be splited
+# @param    urlGroup
+#           a list of list contain url, each small list have 100 url
+# @return   totalGroupNum
+def splitList(urlList, urlGroup):
+    i = 0
+    j = 0
+    newList = []
+    totalLength = len(urlList)
+    
+    for url in urlList:
+        newList.append(url)
+        i = i + 1
+        j = j + 1
+        if i > 999:
+            urlGroup.append(newList)
+            i = 0
+            newList = []
+        if ((j == totalLength) and (len(newList) > 0)):
+            urlGroup.append(newList)
+    totalGroupNum = len(urlGroup)
+    print("Total group of url: ", totalGroupNum)
+
+    return totalGroupNum
+    
