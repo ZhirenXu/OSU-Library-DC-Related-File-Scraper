@@ -26,3 +26,6 @@
 1. put csv file which contain DC items' url in the same folder as DC item scrapper. 
 2. run 'Related File Scraper v1.0.0.py'  
 3. follow instructions on display  
+
+## Change:
+Fix the issue that when a record doesn't have related file it would cause unexpected exit of freeze.

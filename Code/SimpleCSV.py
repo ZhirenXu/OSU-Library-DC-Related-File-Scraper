@@ -78,13 +78,6 @@ def readColomn(csvName, *columnNum):
                finalResult.append(row[0])
             # pop hearder
             finalResult.pop(0)
-            # pop 'id' header (not activated)
-            #interim.pop(0)
-            #for num in columnNum:
-                #for row in interim:
-                    #colomn.append(row[num])
-                #finalResult.append(colomn)
-                #colomn = []
         except:
             print("Error in reading data. Please notice programmer if you see this error\n")
             print("Press any key to exit")
