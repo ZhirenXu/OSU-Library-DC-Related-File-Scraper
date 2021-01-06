@@ -2,24 +2,24 @@ def findFileName(soup, url):
     fileName = ""
     value = ""
     try:
-        workIDPosition = url.index("file_sets") + 10
-        workID = url[workIDPosition : workIDPosition + 9]
-        href = "/concern/file_sets/" + workID
-        result = soup.find('a', attrs={'href': href})
+        result = soup.find('h1', attrs={'class': "ensure-wrapped"})
         fileName = result.contents[0].string
+        if len(fileName) < 1:
+            fileName = "null"
+        else:
+            for char in fileName:
+                if not(char.isalpha()):
+                    fileName = fileName[fileName.index(char)+1:]
+                else:
+                    break
     except:
         print("Primary file name search fail, try alternative way...")
         try:
-            result = soup.find('h1', attrs={'class': "ensure-wrapped"})
+            workIDPosition = url.index("file_sets") + 10
+            workID = url[workIDPosition : workIDPosition + 9]
+            href = "/concern/file_sets/" + workID
+            result = soup.find('a', attrs={'href': href})
             fileName = result.contents[0].string
-            if len(fileName) < 1:
-                fileName = "null"
-            else:
-                for char in fileName:
-                    if not(char.isalpha()):
-                        fileName = fileName[fileName.index(char)+1:]
-                    else:
-                        break
         except:
             print("Fail to find file name!")
         
