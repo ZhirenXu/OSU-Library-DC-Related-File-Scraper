@@ -107,54 +107,55 @@ def getValue(resultList, session, fileUrlList):
     fileResult = []
     #intelligent multithreading :)
     numOfFile = len(resultList)
-    if numOfFile > 9:
-        numOfFile = 9
-    if numOfFile < 1:
-        numOfFile = 1
+    numOfThread = 1
+    
+    #server can't handle 8 threads, will actively refuse connection
+    if numOfFile >= 3:
+        numOfThread = 3
         
-    with concurrent.futures.ThreadPoolExecutor(max_workers = numOfFile) as executor:
-        future_to_url = {executor.submit(loadUrlSession, session, url): url for url in fileUrlList}
-        for future in concurrent.futures.as_completed(future_to_url):
-            url = future_to_url[future]
-            # opened url
-            html = future.result()
-            # load target digital collection in html parser
-            soup = BeautifulSoup(html.text, 'html.parser')
-            try:
-                fileResult.append(Find.findWorkID(url))
-            except:
-                fileResult.append("null")
-            try:
-                fileResult.append(Find.findFileID(url))
-            except:
-                fileResult.append("null")
-            try:
-                fileResult.append(Find.findFileName(soup, url))
-            except:
-                fileResult.append("null")
-            try:
-                fileResult.append(Find.findDepositor(soup))
-            except:
-                fileResult.append("null")
-            try:
-                fileResult.append(Find.findDateUploaded(soup))
-            except:
-                fileResult.append("null")
-            try:
-                fileResult.append(Find.findDateModified(soup))
-            except:
-                fileResult.append("null")
-            try:
-                fileResult.append(Find.findFixity(soup))
-            except:
-                fileResult.append("null")
-            try:
-                fileResult.append(Find.findCharacterization(soup))
-            except:
-                fileResult.append("null")
-            resultList.append(fileResult)
-            fileResult = []
-            gc.collect()
+    with concurrent.futures.ThreadPoolExecutor(max_workers = numOfThread) as executor:
+    future_to_url = {executor.submit(loadUrlSession, session, url): url for url in fileUrlList}
+    for future in concurrent.futures.as_completed(future_to_url):
+        url = future_to_url[future]
+        # opened url
+        html = future.result()
+        # load target digital collection in html parser
+        soup = BeautifulSoup(html.text, 'html.parser')
+        try:
+            fileResult.append(Find.findWorkID(url))
+        except:
+            fileResult.append("null")
+        try:
+            fileResult.append(Find.findFileID(url))
+        except:
+            fileResult.append("null")
+        try:
+            fileResult.append(Find.findFileName(soup, url))
+        except:
+            fileResult.append("null")
+        try:
+            fileResult.append(Find.findDepositor(soup))
+        except:
+            fileResult.append("null")
+        try:
+            fileResult.append(Find.findDateUploaded(soup))
+        except:
+            fileResult.append("null")
+        try:
+            fileResult.append(Find.findDateModified(soup))
+        except:
+            fileResult.append("null")
+        try:
+            fileResult.append(Find.findFixity(soup))
+        except:
+            fileResult.append("null")
+        try:
+            fileResult.append(Find.findCharacterization(soup))
+        except:
+            fileResult.append("null")
+        resultList.append(fileResult)
+        fileResult = []
+        gc.collect()
             
 def getNullValue(resultList):
     fileResult = []
