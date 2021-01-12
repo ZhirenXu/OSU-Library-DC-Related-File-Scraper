@@ -3,9 +3,9 @@ import sys
 ## print program info
 def showInfo():
     print("*************************************")
-    print("*  DC related File Scrapper v1.1.0  *")
+    print("*  DC related File Scrapper v1.1.1  *")
     print("*        Author: Zhiren Xu          *")
-    print("*     published data: 01/05/20      *")
+    print("*     published data: 01/12/20      *")
     print("*************************************")
 
 ## print exit message

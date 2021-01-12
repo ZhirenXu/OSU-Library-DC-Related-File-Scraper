@@ -25,7 +25,7 @@ def findFileName(soup, url):
         
     return fileName
 
-def findFileID(url):
+def findWorkID(url):
     try:
         fileIDPosition = url.index("parent") + 7
         fileID = url[fileIDPosition : fileIDPosition + 9]
@@ -39,7 +39,7 @@ def findFileID(url):
             
     return fileID
 
-def findWorkID(url):
+def findFileID(url):
     try:
         workIDPosition = url.index("file_sets") + 10
         workID = url[workIDPosition : workIDPosition + 9]
