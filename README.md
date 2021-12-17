@@ -20,7 +20,7 @@
       
 ## Instruction
 1. put csv file which contain DC items' url in the same folder as DC item scrapper. 
-2. run 'Related File Scraper v1.1.1.py'  
+2. run 'Related File Scraper.py'  
 3. follow instructions on display  
 
 ## Change:
