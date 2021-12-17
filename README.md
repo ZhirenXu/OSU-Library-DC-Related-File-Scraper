@@ -8,7 +8,7 @@
    
    Must have admin level account in OSU library metadata department. 
    
-   Python ver. 3.8 or higher, other version has not been tested. 
+   Python ver. 3.8
    
    Required Package: 
       
